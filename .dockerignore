@@ -1,0 +1,11 @@
+.git
+.idea
+.claude
+.DS_Store
+flamedb
+clickhouse
+profiles
+ui
+frontend/node_modules
+frontend/.vite
+**/*.log

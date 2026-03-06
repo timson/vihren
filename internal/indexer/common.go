@@ -1,0 +1,153 @@
+//
+// Copyright (C) 2026 Tim Sleptsov
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//    http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+//
+
+package indexer
+
+import (
+	"fmt"
+	"regexp"
+	"strconv"
+	"strings"
+)
+
+type Test struct {
+	Input          string
+	Output         string
+	ShouldNotMatch bool `yaml:"should_not_match"`
+}
+
+type Rule struct {
+	Regexp         string
+	Replace        string
+	CompiledRegexp *regexp.Regexp
+	Tags           []string
+	Tests          []Test
+}
+
+type Rules struct {
+	Rules []Rule
+}
+
+// Words from the nltk corpus that use only the letters a-f and are six chars or longer.
+var base16RealWords = map[string]bool{
+	"accede":   true,
+	"bacaba":   true,
+	"baccae":   true,
+	"beaded":   true,
+	"bedded":   true,
+	"bedead":   true,
+	"bedeaf":   true,
+	"decade":   true,
+	"deedeed":  true,
+	"deface":   true,
+	"efface":   true,
+	"fabaceae": true,
+	"facade":   true,
+}
+
+func isDecimal(s string) bool {
+	_, err := strconv.ParseUint(s, 10, 64)
+	return err == nil
+}
+
+func isHex(s string) bool {
+	_, err := strconv.ParseUint(s, 16, 64)
+	return err == nil
+}
+
+func shouldStrip(component string) bool {
+	if isDecimal(component) {
+		return true
+	}
+	return len(component) >= 6 && isHex(component) && !base16RealWords[strings.ToLower(component)]
+}
+
+func stripPodName(name string) string {
+	var knownPrefixes = [2]string{"flink", "kube-proxy"}
+	for _, prefix := range knownPrefixes {
+		if strings.HasPrefix(name, prefix) {
+			return prefix
+		}
+	}
+	components := strings.Split(name, "-")
+	if len(components) < 2 {
+		return name
+	}
+	newComponents := make([]string, 0)
+	for _, component := range components {
+		if shouldStrip(component) {
+			if len(newComponents) == 0 {
+				// Nothing semantically meaningful yet. The raw subservice name starts with a uniqueness
+				// marker. Strip it and continue.
+				continue
+			} else {
+				// We have semantically meaningful components and now we see a uniqueness marker -- assume
+				// the rest is a marker.
+				break
+			}
+		}
+		newComponents = append(newComponents, component)
+	}
+	// If nothing was trimmed, at least remove the last part, most probably garbage
+	// (In fact, pod names tend to end with a 5 char hash using the whole alphabet)
+	if len(newComponents) == len(components) {
+		newComponents = newComponents[:len(newComponents)-1]
+	}
+	if len(newComponents) == 0 {
+		// nothing left, I give up
+		return name
+	}
+	return strings.Join(newComponents, "-")
+}
+
+// ContainerAndK8sName parses Kubernetes and ECS container identifiers, returning
+// (containerName, k8sEnvName).
+func ContainerAndK8sName(rawContainer string) (string, string) {
+	if strings.HasPrefix(rawContainer, "k8s_") {
+		parts := strings.SplitN(rawContainer, "_", 6)
+		if len(parts) != 6 {
+			return rawContainer, ""
+		}
+		stripped := stripPodName(parts[2])
+		if strings.HasPrefix(stripped, "kube-proxy-") {
+			stripped = "kube-proxy"
+		}
+		//part[3] is the namespace. We concatenate it to the Container and to the K8sName
+		return fmt.Sprintf("%s_%s_%s", parts[1], stripped, parts[3]), fmt.Sprintf("%s_%s", stripped, parts[3])
+	}
+	if strings.HasPrefix(rawContainer, "ecs-") {
+		// strip the "ecs-" prefix and "-hash" suffix
+		rest := strings.TrimPrefix(rawContainer, "ecs-")
+		parts := strings.Split(rest, "-")
+		if len(parts) == 1 {
+			return rawContainer, parts[0]
+		}
+		parts = parts[:len(parts)-1]
+		// we strip the revision number (equivalent to stripping the replicaset hash)
+		lastIndex := 0
+		for index, containerPart := range parts {
+			_, err := strconv.Atoi(containerPart)
+			if err == nil {
+				lastIndex = index
+				break
+			}
+		}
+		taskFamily := strings.Join(parts[:lastIndex], "-")
+		name := strings.Join(parts[lastIndex+1:], "-") // what's left is the name
+		return fmt.Sprintf("%s_%s", name, taskFamily), taskFamily
+	}
+	return rawContainer, ""
+}

@@ -1,0 +1,41 @@
+# Binaries for programs and plugins
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+/vihren
+
+# Test binary, built with `go test -c`
+*.test
+
+# Output of the go coverage tool
+*.out
+
+# Go workspace file
+go.work
+
+# IDE
+.idea/
+
+# OS
+.DS_Store
+
+# ClickHouse data
+flamedb
+flamedb/data/
+flamedb/tmp/
+flamedb/metadata/
+flamedb/store/
+clickhouse
+
+# AI / Claude
+AGENTS.md
+CLAUDE.md
+.claude/
+
+# Built frontend (served from ui/ at runtime, built via `cd frontend && bun run build`)
+ui/
+
+# Runtime data
+profiles/

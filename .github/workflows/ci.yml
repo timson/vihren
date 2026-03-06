@@ -1,0 +1,55 @@
+name: CI
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+      - name: Install libchdb
+        run: |
+          curl -sL -o libchdb.tar.gz https://github.com/chdb-io/chdb/releases/download/v4.0.2/linux-x86_64-libchdb.tar.gz
+          tar xzf libchdb.tar.gz
+          sudo cp libchdb.so /usr/lib/
+          sudo ldconfig
+      - name: Go vet
+        run: go vet ./...
+      - name: Install golangci-lint
+        uses: golangci/golangci-lint-action@v7
+        with:
+          version: v2.10.1
+
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+      - name: Install libchdb
+        run: |
+          curl -sL -o libchdb.tar.gz https://github.com/chdb-io/chdb/releases/download/v4.0.2/linux-x86_64-libchdb.tar.gz
+          tar xzf libchdb.tar.gz
+          sudo cp libchdb.so /usr/lib/
+          sudo ldconfig
+      - name: Run tests
+        run: go test ./...
+
+  test-ui:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+      - name: Install dependencies
+        run: cd frontend && bun install --frozen-lockfile
+      - name: Run tests
+        run: cd frontend && bun run test
