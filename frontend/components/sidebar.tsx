@@ -45,20 +45,44 @@ function Sidebar() {
       <Modal
         opened={aboutOpen}
         onClose={() => setAboutOpen(false)}
-        title="Vihren"
+        title=""
         centered
         size="sm"
       >
         <div className="about-dialog">
           <img src={flameIcon} alt="Vihren" className="about-logo" />
-          <Text size="lg" fw={600}>Vihren</Text>
-          <Text size="sm" c="dimmed">Continuous Profiling UI</Text>
-          <Text size="sm" mt="md">
-            Collect, store and visualize CPU flamegraphs from your services.
-            Powered by embedded ClickHouse.
+
+          <Text size="lg" fw={600}>
+            <a
+              href="https://github.com/timson/vihren"
+              target="_blank"
+              rel="noopener noreferrer"
+              style={{ color: "inherit", textDecoration: "none" }}
+            >
+              Vihren
+            </a>
           </Text>
-          <Text size="xs" c="dimmed" mt="md">
-            github.com/timescale/vihren
+
+          <Text size="sm" c="dimmed">Continuous Profiling UI</Text>
+
+          <Text size="sm" mt="md">
+            Collect, store and visualize CPU flamegraphs from{" "}
+            <a
+              href="https://github.com/intel/gProfiler"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              Intel gProfiler
+            </a>
+            . Powered by embedded{" "}
+            <a
+              href="https://github.com/ClickHouse/ClickHouse"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              ClickHouse
+            </a>
+            .
           </Text>
         </div>
       </Modal>

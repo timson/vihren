@@ -136,6 +136,8 @@ body {
 
 .main {
   padding: 20px 24px 28px;
+  display: flex;
+  flex-direction: column;
 }
 
 .topbar {
@@ -525,24 +527,9 @@ body {
   border: none;
   padding: 0;
   box-shadow: none;
-}
-
-.status-row {
+  flex: 1;
   display: flex;
-  gap: 12px;
-  flex-wrap: wrap;
-  align-items: center;
-  margin: 6px 0 8px;
-}
-
-.status-pill {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  background: var(--panel-alt);
-  border-radius: 999px;
-  padding: 6px 12px;
-  border: 1px solid var(--line);
+  flex-direction: column;
 }
 
 .samples-card {
@@ -659,6 +646,7 @@ body {
 
 .flamegraph-wrap {
   position: relative;
+  flex: 1;
 }
 
 .flamegraph-canvas {
@@ -696,9 +684,19 @@ body {
 }
 
 .flamegraph-empty {
-  margin-top: 6px;
-  font-size: 12px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 48px 0;
   color: var(--muted);
+}
+
+.empty-icon {
+  font-size: 28px;
+  opacity: 0.4;
+  line-height: 1;
 }
 
 .legend-row {
@@ -706,7 +704,8 @@ body {
   gap: 14px;
   flex-wrap: wrap;
   align-items: center;
-  margin-top: 10px;
+  margin-top: auto;
+  padding-top: 10px;
   color: var(--muted);
   font-size: 12px;
   position: sticky;
@@ -745,11 +744,6 @@ body {
 
 .legend-item.inactive {
   opacity: 0.5;
-}
-
-.status-text {
-  color: #e0584f;
-  font-size: 13px;
 }
 
 .d3-flame-graph rect {
