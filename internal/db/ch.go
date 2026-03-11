@@ -98,14 +98,14 @@ func (c *ChDBClient) Exec(ctx context.Context, query string) error {
 
 func (c *ChDBClient) RunProfileWriter(ctx context.Context, in <-chan ProfileBlock) error {
 	log.WithFields(log.Fields{
-		"min_rows":    c.config.MinStackRows,
+		"batch_size":  c.config.WriteBatchSize,
 		"flush_every": c.config.FlushEvery,
 	}).Debug("chdb writer start")
 
 	t := time.NewTicker(c.config.FlushEvery)
 	defer t.Stop()
 
-	pendingStacks := make([]StackRecord, 0, c.config.MinStackRows)
+	pendingStacks := make([]StackRecord, 0, c.config.WriteBatchSize)
 	pendingMetrics := make([]MetricRecord, 0, 1024)
 
 	flush := func() {
@@ -162,7 +162,7 @@ func (c *ChDBClient) RunProfileWriter(ctx context.Context, in <-chan ProfileBloc
 				pendingMetrics = append(pendingMetrics, *pb.Metrics)
 			}
 
-			if len(pendingStacks) >= c.config.MinStackRows {
+			if len(pendingStacks) >= c.config.WriteBatchSize {
 				flush()
 			}
 		}
