@@ -140,14 +140,14 @@ func (s *Server) QueryMeta(c *gin.Context) {
 		"container":     "ContainerName",
 		"hostname":      "HostName",
 		"instance_type": "InstanceType",
-		"pod":           "ContainerEnvName",
+		"workload":      "ContainerEnvName",
 	}
 
 	ctx := c.Request.Context()
 	var resp modelresponse.ExecTimeInterface
 
 	switch params.LookupTarget {
-	case "hostname", "instance_type", "container", "pod":
+	case "hostname", "instance_type", "container", "workload":
 		field := mapping[params.LookupTarget]
 		res, qErr := s.DB.FetchFieldValues(ctx, field, params, query)
 		if qErr != nil {

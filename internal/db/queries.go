@@ -103,9 +103,9 @@ func BuildConditionsSq(p *request.FiltersQuery, filterQuery string) (tablePrefix
 		tablePrefix = ""
 		parts = append(parts, sq.Eq{"InstanceType": p.InstanceType})
 	}
-	if len(p.K8SObject) > 0 {
+	if len(p.Workload) > 0 {
 		tablePrefix = ""
-		parts = append(parts, sq.Eq{"ContainerEnvName": p.K8SObject})
+		parts = append(parts, sq.Eq{"ContainerEnvName": p.Workload})
 	}
 
 	if len(parts) == 0 {
@@ -716,7 +716,16 @@ func (c *ChDBClient) FetchMetricsGraph(ctx context.Context, params request.Metri
 		FromSelect(inner, "t").
 		GroupBy("Datetime")
 
-	_, query = ApplyParams(query, &params.FiltersQuery, filterQuery)
+	if filterQuery != "" {
+		query = query.Where(sq.Expr(filterQuery))
+	} else {
+		if len(params.HostName) > 0 {
+			query = query.Where(sq.Eq{"HostName": params.HostName})
+		}
+		if len(params.InstanceType) > 0 {
+			query = query.Where(sq.Eq{"InstanceType": params.InstanceType})
+		}
+	}
 
 	return SelectAllSq[response.MetricsSummary](ctx, c.client, entry, query, func(rows *sql.Rows) (response.MetricsSummary, error) {
 		ms := response.MetricsSummary{}

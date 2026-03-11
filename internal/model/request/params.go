@@ -54,14 +54,14 @@ type FiltersQuery struct {
 	ContainerName []string `form:"container"`
 	HostName      []string `form:"hostname"`
 	InstanceType  []string `form:"instance_type"`
-	K8SObject     []string `form:"pod"`
+	Workload      []string `form:"workload"`
 }
 
 type RQLFilters struct {
 	ContainerName string `rql:"column=ContainerName,filter"`
 	HostName      string `rql:"column=HostName,filter"`
 	InstanceType  string `rql:"column=InstanceType,filter"`
-	K8SObject     string `rql:"column=ContainerEnvName,filter"`
+	Workload      string `rql:"column=ContainerEnvName,filter"`
 }
 
 type MetricsRQLFilters struct {
@@ -92,7 +92,7 @@ type QueryMetaQuery struct {
 	Filter       string `form:"filter"`
 	Resolution   string `form:"resolution,default=hour" binding:"oneof=none hour day raw"`
 	Interval     string `form:"interval"`
-	LookupTarget string `form:"lookup_for" binding:"required,oneof=container hostname instance_type pod time time_range instance_type_count samples"`
+	LookupTarget string `form:"lookup_for" binding:"required,oneof=container hostname instance_type workload time time_range instance_type_count samples"`
 }
 
 func (p *QueryMetaQuery) FilterQuery() string {
@@ -115,9 +115,14 @@ func (p *SessionsCountQuery) FilterQuery() string {
 	return p.Filter
 }
 
+type MetricsFiltersQuery struct {
+	HostName     []string `form:"hostname"`
+	InstanceType []string `form:"instance_type"`
+}
+
 type MetricsSummaryQuery struct {
 	TimeRangeQuery
-	FiltersQuery
+	MetricsFiltersQuery
 	Service    string `form:"service" binding:"required"`
 	Filter     string `form:"filter"`
 	Percentile int    `form:"percentile,default=90" binding:"numeric,min=0,max=100"`
