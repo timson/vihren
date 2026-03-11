@@ -1,9 +1,15 @@
 import { useState } from "react";
-import { Modal, Text } from "@mantine/core";
+import { Modal, NumberInput, Text } from "@mantine/core";
 import flameIcon from "../assets/flame.png";
 
-function Sidebar() {
+interface SidebarProps {
+  stacksNum: number;
+  onStacksNumChange: (value: number) => void;
+}
+
+function Sidebar({ stacksNum, onStacksNumChange }: SidebarProps) {
   const [aboutOpen, setAboutOpen] = useState(false);
+  const [settingsOpen, setSettingsOpen] = useState(false);
 
   return (
     <aside className="sidebar-rail">
@@ -34,6 +40,15 @@ function Sidebar() {
         <button
           className="rail-item"
           type="button"
+          aria-label="Settings"
+          title="Settings"
+          onClick={() => setSettingsOpen(true)}
+        >
+          <i className="bi bi-gear" aria-hidden="true"></i>
+        </button>
+        <button
+          className="rail-item"
+          type="button"
           aria-label="About"
           title="About"
           onClick={() => setAboutOpen(true)}
@@ -41,6 +56,24 @@ function Sidebar() {
           <i className="bi bi-question-circle" aria-hidden="true"></i>
         </button>
       </div>
+
+      <Modal
+        opened={settingsOpen}
+        onClose={() => setSettingsOpen(false)}
+        title="Settings"
+        centered
+        size="sm"
+      >
+        <NumberInput
+          label="Max stacks"
+          description="Number of top stack frames to fetch per query"
+          value={stacksNum}
+          onChange={(val) => onStacksNumChange(typeof val === "number" ? val : 10000)}
+          min={1000}
+          max={100000}
+          step={1000}
+        />
+      </Modal>
 
       <Modal
         opened={aboutOpen}
