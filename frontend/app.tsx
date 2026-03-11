@@ -47,7 +47,7 @@ const API = {
 const metaTargets = [
   { label: "Hostname", lookupFor: "hostname" },
   { label: "Container", lookupFor: "container" },
-  { label: "Workload", lookupFor: "pod" }
+  { label: "Workload", lookupFor: "workload" }
 ] as const;
 
 const filterStorageKey = "flamedb:selected_filters";
@@ -269,16 +269,32 @@ function App() {
     [applyFiltersToUrl]
   );
 
+  const applyMetricsFiltersToUrl = useCallback(
+    (url: URL) => {
+      const metricsKeys = new Set(["hostname", "instance_type"]);
+      selectedFilters.forEach((value) => {
+        const separator = value.indexOf(":");
+        if (separator <= 0) return;
+        const key = value.slice(0, separator);
+        const item = value.slice(separator + 1);
+        if (item && metricsKeys.has(key)) {
+          url.searchParams.append(key, item);
+        }
+      });
+    },
+    [selectedFilters]
+  );
+
   const buildMetricsUrl = useCallback(
     (serviceId: string, startValue: string, endValue: string) => {
       const url = new URL(API.metricsGraph, window.location.origin);
       url.searchParams.set("service", serviceId);
       url.searchParams.set("start_datetime", formatForApi(startValue));
       url.searchParams.set("end_datetime", formatForApi(endValue));
-      applyFiltersToUrl(url);
+      applyMetricsFiltersToUrl(url);
       return url.toString();
     },
-    [applyFiltersToUrl]
+    [applyMetricsFiltersToUrl]
   );
 
   const buildSummaryUrl = useCallback(
