@@ -23,6 +23,8 @@ spec:
       {{- end }}
     spec:
       serviceAccountName: {{ include "vihren.serviceAccountName" . }}
+      securityContext:
+        fsGroup: 888
       containers:
         - name: vihren
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
