@@ -43,6 +43,34 @@ docker run --name granulate-gprofiler -d --restart=on-failure:10 --pid=host --us
 --server-host=http://<ip:port> --glogger-server=http://<ip:port> --no-verify
 ```
 
+## Helm
+
+Install into a Kubernetes cluster using the bundled Helm chart:
+
+```sh
+helm install vihren ./charts/vihren -n vihren --create-namespace
+```
+
+This uses the cluster's default storage class with a 5Gi volume. To customize, override values:
+
+```sh
+helm install vihren ./charts/vihren -n vihren --create-namespace \
+  --set storage.size=10Gi
+```
+
+See [`charts/vihren/values.yaml`](charts/vihren/values.yaml) for all available options.
+
+Deploy [gProfiler](https://github.com/intel/gprofiler) as a DaemonSet to send profiles to Vihren:
+
+```sh
+helm install gprofiler ./charts/gprofiler -n vihren \
+  --set gprofiler.token="1234" \
+  --set gprofiler.serviceHost=http://vihren.vihren.svc:8080 \
+  --set gprofiler.serviceName="my-service"
+```
+
+See [`charts/gprofiler/values.yaml`](charts/gprofiler/values.yaml) for all available options.
+
 ## Configuration
 
 All settings are configured via environment variables with the `VIHREN_` prefix.
