@@ -31,13 +31,9 @@ type QueueConfig struct {
 }
 
 type ChDBConfig struct {
-	Filename            string        `default:"flamedb"`
-	RawRetentionDays    int           `default:"7"`   // Raw data retention period
-	MinuteRetentionDays int           `default:"365"` // Minute aggregation retention period
-	HourlyRetentionDays int           `default:"90"`  // Hourly aggregation retention period
-	DailyRetentionDays  int           `default:"365"` // Daily aggregation retention period
-	MinStackRows        int           `default:"100_000"`
-	FlushEvery          time.Duration `default:"10s"`
+	Filename     string        `default:"flamedb"`
+	WriteBatchSize int           `default:"100_000"`
+	FlushEvery   time.Duration `default:"10s"`
 }
 
 type IndexerConfig struct {

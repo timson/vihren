@@ -32,7 +32,7 @@ CREATE TABLE IF NOT EXISTS flamedb.samples
     ENGINE = MergeTree
     PARTITION BY toYYYYMMDD(Timestamp)
     ORDER BY (Service, InstanceType, ContainerEnvName, HostName, Timestamp)
-    TTL Timestamp + INTERVAL 30 DAY;
+    TTL Timestamp + INTERVAL 7 DAY;
 
 
 CREATE MATERIALIZED VIEW IF NOT EXISTS flamedb.samples_mv
@@ -62,7 +62,7 @@ CREATE TABLE IF NOT EXISTS flamedb.samples_name
     ENGINE = ReplacingMergeTree
     PARTITION BY toYYYYMMDD(Timestamp)
     ORDER BY (Timestamp, Service, CallStackHash)
-    TTL Timestamp + INTERVAL 30 DAY;
+    TTL Timestamp + INTERVAL 7 DAY;
 
 CREATE MATERIALIZED VIEW IF NOT EXISTS flamedb.samples_name_mv
 TO flamedb.samples_name
@@ -91,7 +91,8 @@ CREATE TABLE IF NOT EXISTS flamedb.metrics
     )
     ENGINE = MergeTree
     PARTITION BY toYYYYMMDD(Timestamp)
-    ORDER BY (Service, InstanceType, HostName, Timestamp);
+    ORDER BY (Service, InstanceType, HostName, Timestamp)
+    TTL Timestamp + INTERVAL 7 DAY;
 
 -- 1 hour aggregated (all hostnames, all containers)
 CREATE TABLE IF NOT EXISTS flamedb.samples_1hour_all
@@ -105,7 +106,7 @@ CREATE TABLE IF NOT EXISTS flamedb.samples_1hour_all
     ENGINE = SummingMergeTree(NumSamples)
     PARTITION BY toYYYYMMDD(Timestamp)
     ORDER BY (Service, Timestamp, CallStackHash, CallStackParent)
-    TTL Timestamp + INTERVAL 30 DAY;
+    TTL Timestamp + INTERVAL 7 DAY;
 
 CREATE MATERIALIZED VIEW IF NOT EXISTS flamedb.samples_1hour_all_mv
 TO flamedb.samples_1hour_all
@@ -148,7 +149,7 @@ CREATE TABLE IF NOT EXISTS flamedb.samples_1hour
                  CallStackHash,
                  CallStackParent
              )
-    TTL Timestamp + INTERVAL 30 DAY;
+    TTL Timestamp + INTERVAL 7 DAY;
 
 CREATE MATERIALIZED VIEW IF NOT EXISTS flamedb.samples_1hour_mv
 TO flamedb.samples_1hour
@@ -186,7 +187,7 @@ CREATE TABLE IF NOT EXISTS flamedb.samples_1day_all
     ENGINE = SummingMergeTree(NumSamples)
     PARTITION BY toYYYYMMDD(Timestamp)
     ORDER BY (Service, Timestamp, CallStackHash, CallStackParent)
-    TTL Timestamp + INTERVAL 30 DAY;
+    TTL Timestamp + INTERVAL 7 DAY;
 
 CREATE MATERIALIZED VIEW IF NOT EXISTS flamedb.samples_1day_all_mv
 TO flamedb.samples_1day_all
@@ -229,7 +230,7 @@ CREATE TABLE IF NOT EXISTS flamedb.samples_1day
                  CallStackHash,
                  CallStackParent
              )
-    TTL Timestamp + INTERVAL 365 DAY;
+    TTL Timestamp + INTERVAL 7 DAY;
 
 CREATE MATERIALIZED VIEW IF NOT EXISTS flamedb.samples_1day_mv
 TO flamedb.samples_1day
@@ -268,7 +269,8 @@ CREATE TABLE IF NOT EXISTS flamedb.samples_1min
     )
     ENGINE = SummingMergeTree(NumSamples)
     PARTITION BY toYYYYMMDD(Timestamp)
-    ORDER BY (Service, ContainerEnvName, InstanceType, ContainerName, HostName, Timestamp);
+    ORDER BY (Service, ContainerEnvName, InstanceType, ContainerName, HostName, Timestamp)
+    TTL Timestamp + INTERVAL 7 DAY;
 
 CREATE MATERIALIZED VIEW IF NOT EXISTS flamedb.samples_1min_mv
 TO flamedb.samples_1min

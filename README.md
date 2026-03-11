@@ -51,12 +51,19 @@ All settings are configured via environment variables with the `VIHREN_` prefix.
 |---|---|---|
 | `VIHREN_SERVER_PORT` | `8080` | HTTP server port |
 | `VIHREN_DB_FILENAME` | `flamedb` | chdb session directory (data storage path) |
-| `VIHREN_DB_RAWRETENTIONDAYS` | `7` | Raw data retention in days |
-| `VIHREN_DB_MINUTERETENTIONDAYS` | `365` | Minute aggregation retention in days |
-| `VIHREN_DB_HOURLYRETENTIONDAYS` | `90` | Hourly aggregation retention in days |
-| `VIHREN_DB_DAILYRETENTIONDAYS` | `365` | Daily aggregation retention in days |
-| `VIHREN_DB_MINSTACKROWS` | `100000` | Minimum stack rows per query |
+| `VIHREN_DB_WRITE_BATCH_SIZE` | `100000` | Batch size for ClickHouse bulk inserts |
 | `VIHREN_INDEXER_WORKERS` | `2` | Number of indexer worker goroutines |
+
+> **Note:** All profiling data has a TTL of 7 days. Older data is automatically removed by ClickHouse.
+
+### API for FlameDB  status
+
+```sh
+curl -s http://localhost:8080/api/v1/flamedb/status | jq
+```
+
+Returns storage stats for each ClickHouse table: row counts, disk usage, compression ratio, and the time range of stored data.
+
 
 ## License
 

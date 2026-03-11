@@ -64,7 +64,7 @@ func newTestDB(t *testing.T) *db.ChDBClient {
 	t.Helper()
 	cfg := config.ChDBConfig{
 		Filename:     filepath.Join(t.TempDir(), "testdb"),
-		MinStackRows: 1,
+		WriteBatchSize: 1,
 		FlushEvery:   time.Second,
 	}
 	client, err := db.NewChDBClientWithSchema(cfg, schemaPath())
