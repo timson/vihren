@@ -58,7 +58,6 @@ function App() {
   const [graphData, setGraphData] = useState<FlamegraphResponse | null>(null);
   const [loadingServices, setLoadingServices] = useState(true);
   const [loadingGraph, setLoadingGraph] = useState(false);
-  const [error, setError] = useState("");
   const [timePickerOpen, setTimePickerOpen] = useState(false);
 
   // Compute once from URL on first render; relative ranges recalculate from
@@ -140,7 +139,6 @@ function App() {
 
   const loadServices = useCallback(async (startValue: string, endValue: string) => {
     setLoadingServices(true);
-    setError("");
     try {
       const url = new URL(API.services, window.location.origin);
       url.searchParams.set("start_datetime", formatForApi(startValue));
@@ -152,11 +150,7 @@ function App() {
       const payload = await response.json();
       const result = Array.isArray(payload?.result) ? payload.result : [];
       setServices(result);
-      if (result.length === 0) {
-        setError("No services returned from the API.");
-      }
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to load services.");
       setServices([]);
     } finally {
       setLoadingServices(false);
@@ -362,8 +356,7 @@ function App() {
       const resolvedStart = startValue ?? startTime;
       const resolvedEnd = endValue ?? endTime;
       setLoadingGraph(true);
-      setError("");
-      try {
+        try {
         const response = await fetch(
           buildFlamegraphUrl(serviceId, resolvedStart, resolvedEnd)
         );
@@ -373,7 +366,6 @@ function App() {
         const payload = (await response.json()) as FlamegraphResponse;
         setGraphData(payload);
       } catch (err) {
-        setError(err instanceof Error ? err.message : "Failed to load flamegraph.");
         setGraphData(null);
       } finally {
         setLoadingGraph(false);
@@ -775,23 +767,19 @@ function App() {
         <StatsBar summary={summaryStats} loading={loadingSummary} />
 
         <section className="graph-card">
-          <div className="status-row">
-            {loadingServices ? (
-              <div className="status-pill">
-                <Loader size="sm" />
-                <Text size="sm" c="dimmed">
-                  Syncing services
-                </Text>
-              </div>
-            ) : null}
-            {error ? <Text className="status-text">{error}</Text> : null}
-          </div>
-
           <div className="flamegraph-wrap">
             <div id="flamegraph" className="flamegraph-canvas"></div>
-            {!graphData ? (
+            {!graphData && !loadingGraph ? (
               <div className="flamegraph-empty">
-                Select a service to load its flamegraph.
+                {loadingServices ? (
+                  <Loader size="xs" color="gray" />
+                ) : services.length === 0 ? (
+                  <>
+                    <span className="empty-icon">&#x2662;</span>
+                    <Text size="sm" c="dimmed">No profiling data yet</Text>
+                    <Text size="xs" c="dimmed">Send profiles to start exploring</Text>
+                  </>
+                ) : null}
               </div>
             ) : null}
 
