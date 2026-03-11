@@ -51,6 +51,8 @@ const metaTargets = [
 ] as const;
 
 const filterStorageKey = "flamedb:selected_filters";
+const stacksNumStorageKey = "flamedb:stacks_num";
+const defaultStacksNum = 10000;
 
 function App() {
   const [services, setServices] = useState<ServiceResponse[]>([]);
@@ -90,6 +92,20 @@ function App() {
   const [enabledRuntimes, setEnabledRuntimes] = useState<RuntimeKey[]>(
     () => allRuntimeKeys
   );
+  const [stacksNum, setStacksNum] = useState<number>(() => {
+    const stored = localStorage.getItem(stacksNumStorageKey);
+    if (stored) {
+      const parsed = Number(stored);
+      if (!Number.isNaN(parsed) && parsed >= 1000 && parsed <= 100000) return parsed;
+    }
+    return defaultStacksNum;
+  });
+
+  const handleStacksNumChange = useCallback((value: number) => {
+    const clamped = Math.max(1000, Math.min(100000, value));
+    setStacksNum(clamped);
+    localStorage.setItem(stacksNumStorageKey, String(clamped));
+  }, []);
 
   const serviceOptions = useMemo(
     () =>
@@ -263,10 +279,11 @@ function App() {
       url.searchParams.set("service", serviceId);
       url.searchParams.set("start_datetime", formatForApi(startValue));
       url.searchParams.set("end_datetime", formatForApi(endValue));
+      url.searchParams.set("stacks_num", String(stacksNum));
       applyFiltersToUrl(url);
       return url.toString();
     },
-    [applyFiltersToUrl]
+    [applyFiltersToUrl, stacksNum]
   );
 
   const applyMetricsFiltersToUrl = useCallback(
@@ -589,6 +606,7 @@ function App() {
     url.searchParams.set("service", selectedService);
     url.searchParams.set("start_datetime", formatForApi(start));
     url.searchParams.set("end_datetime", formatForApi(end));
+    url.searchParams.set("stacks_num", String(stacksNum));
     applyFiltersToUrl(url);
     url.searchParams.set("format", "svg");
     const a = document.createElement("a");
@@ -597,7 +615,7 @@ function App() {
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
-  }, [getEffectiveTimes, selectedService, applyFiltersToUrl, exportFilename]);
+  }, [getEffectiveTimes, selectedService, applyFiltersToUrl, exportFilename, stacksNum]);
 
   const handleExportCollapsed = useCallback(() => {
     const [start, end] = getEffectiveTimes();
@@ -605,6 +623,7 @@ function App() {
     url.searchParams.set("service", selectedService);
     url.searchParams.set("start_datetime", formatForApi(start));
     url.searchParams.set("end_datetime", formatForApi(end));
+    url.searchParams.set("stacks_num", String(stacksNum));
     applyFiltersToUrl(url);
     url.searchParams.set("format", "collapsed_file");
     const a = document.createElement("a");
@@ -613,7 +632,7 @@ function App() {
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
-  }, [getEffectiveTimes, selectedService, applyFiltersToUrl, exportFilename]);
+  }, [getEffectiveTimes, selectedService, applyFiltersToUrl, exportFilename, stacksNum]);
 
   const applyTimeSelection = useCallback(
     (nextStart?: string, nextEnd?: string, nextRange?: string) => {
@@ -702,7 +721,7 @@ function App() {
 
   return (
     <div className="shell">
-      <Sidebar />
+      <Sidebar stacksNum={stacksNum} onStacksNumChange={handleStacksNumChange} />
 
       <main className="main">
         <TopBar
