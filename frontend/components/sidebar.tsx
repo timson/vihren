@@ -54,11 +54,11 @@ function Sidebar() {
           <Text size="lg" fw={600}>Vihren</Text>
           <Text size="sm" c="dimmed">Continuous Profiling UI</Text>
           <Text size="sm" mt="md">
-            Collect, store and visualize CPU flamegraphs from your services.
+            Collect, store and visualize CPU flamegraphs from Intel gProfiler.
             Powered by embedded ClickHouse.
           </Text>
           <Text size="xs" c="dimmed" mt="md">
-            github.com/timescale/vihren
+            github.com/timson/vihren
           </Text>
         </div>
       </Modal>

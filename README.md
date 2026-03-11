@@ -2,6 +2,10 @@
 
 Lightweight continuous profiling for Intel gProfiler.
 
+<a href="vihren_ui.png">
+  <img src="vihren_ui.png" alt="Vihren UI preview" width="40%">
+</a>
+
 > [!NOTE]  
 > **Vihren** is the highest peak in the Pirin Mountains of Bulgaria.
 

@@ -47,7 +47,7 @@ const API = {
 const metaTargets = [
   { label: "Hostname", lookupFor: "hostname" },
   { label: "Container", lookupFor: "container" },
-  { label: "Pod", lookupFor: "pod" }
+  { label: "Workload", lookupFor: "pod" }
 ] as const;
 
 const filterStorageKey = "flamedb:selected_filters";
