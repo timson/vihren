@@ -22,6 +22,7 @@ import (
 	"strconv"
 	"vihren/internal/stackframe"
 
+	"github.com/ianlancetaylor/demangle"
 	"github.com/montanaflynn/stats"
 	log "github.com/sirupsen/logrus"
 )
@@ -171,11 +172,15 @@ func (graph *Graph) PrepareFrames(limitFrames int) (int, error) {
 	}
 
 	for hash := range graph.Frames {
-		frameName := graph.Frames[hash].Name
-		lang, specialType := stackframe.IdentFrameLangAndSpecialType(frameName)
 		frame := graph.Frames[hash]
+		lang, specialType := stackframe.IdentFrameLangAndSpecialType(frame.Name)
 		frame.Lang = lang
 		frame.SpecialType = specialType
+		if lang == stackframe.Rust || lang == stackframe.Cpp {
+			if demangled, err := demangle.ToString(frame.Name); err == nil {
+				frame.Name = demangled
+			}
+		}
 		graph.Frames[hash] = frame
 	}
 

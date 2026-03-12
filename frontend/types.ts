@@ -66,6 +66,7 @@ export type RuntimeKey =
   | "cpp"
   | "kernel"
   | "go"
+  | "rust"
   | "other";
 
 export type LegendItem = {

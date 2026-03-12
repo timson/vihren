@@ -20,6 +20,7 @@ require (
 	github.com/google/uuid v1.6.0 // indirect
 	github.com/huandu/go-sqlbuilder v1.27.3 // indirect
 	github.com/huandu/xstrings v1.4.0 // indirect
+	github.com/ianlancetaylor/demangle v0.0.0-20251118225945-96ee0021ea0f // indirect
 	github.com/kr/text v0.2.0 // indirect
 	github.com/lann/builder v0.0.0-20180802200727-47ae307949d0 // indirect
 	github.com/lann/ps v0.0.0-20150810152359-62de8c46ede0 // indirect

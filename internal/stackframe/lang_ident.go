@@ -36,6 +36,7 @@ const (
 	Ruby            = "Ruby"
 	Kernel          = "Kernel"
 	Net             = ".NET"
+	Rust            = "Rust"
 	Other           = "Other"
 )
 
@@ -56,6 +57,7 @@ var RuntimesRegexps = []LanguageRegexp{
 	{Lang: PHP, Regexp: regexp.MustCompile(`_\[php]$`)},
 	{Lang: Ruby, Regexp: regexp.MustCompile(`_\[rb]$`)},
 	{Lang: NodeJS, Regexp: regexp.MustCompile(`^LazyCompile|^InterpretedFunction`)},
+	{Lang: Rust, Regexp: regexp.MustCompile(`^_{1,2}R[a-zA-Z]|17h[0-9a-f]{16}E`)},
 	{Lang: Cpp, Regexp: regexp.MustCompile(`::`)},
 	{Lang: Kernel, Regexp: regexp.MustCompile(`_\[k]$`)},
 	{Lang: Net, Regexp: regexp.MustCompile(`_\[net]$`)},
