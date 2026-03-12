@@ -13,6 +13,7 @@ export const runtimeColors = {
   cpp: "#65B6F2",
   kernel: "#f29aca",
   go: "#61d2f2",
+  rust: "#dea584",
   other: "#B375FD"
 } as const;
 
@@ -27,6 +28,7 @@ export const legendItems: LegendItem[] = [
   { key: "cpp", label: "C++", color: runtimeColors.cpp },
   { key: "kernel", label: "Kernel", color: runtimeColors.kernel },
   { key: "go", label: "Go", color: runtimeColors.go },
+  { key: "rust", label: "Rust", color: runtimeColors.rust },
   { key: "other", label: "Other", color: runtimeColors.other }
 ];
 
@@ -52,6 +54,7 @@ const runtimeColorMap: Record<string, string> = {
   "c++": runtimeColors.cpp,
   kernel: runtimeColors.kernel,
   go: runtimeColors.go,
+  rust: runtimeColors.rust,
   other: runtimeColors.other
 };
 
@@ -69,6 +72,7 @@ const runtimeKeyMap: Record<string, RuntimeKey> = {
   "c++": "cpp",
   kernel: "kernel",
   go: "go",
+  rust: "rust",
   other: "other"
 };
 

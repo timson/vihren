@@ -25,6 +25,10 @@ and small Kubernetes setups.
 - **Docker & Helm ready** — single container deployment, Helm chart included
 - **Built for Intel gProfiler** — works with the [Intel gProfiler](https://github.com/intel/gprofiler) agent out of the box
 
+## UI Example
+
+![Vihren UI](vihren_ui.png)
+
 ## Quick Start
 
 ```sh
