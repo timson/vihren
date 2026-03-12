@@ -11,10 +11,13 @@ type MetricsTimelineProps = {
   resetKey: number;
 };
 
-const plotHeight = 44;
+const plotHeightCollapsed = 44;
+const plotHeightExpanded = 120;
 const axisHeight = 26;
 const chartPadding = 8;
+const yAxisWidth = 36;
 const minLabelPx = 64;
+const gridLineCount = 4;
 
 function MetricsTimeline({
   points,
@@ -31,12 +34,15 @@ function MetricsTimeline({
     end: Date;
     active: boolean;
   } | null>(null);
+  const [expanded, setExpanded] = useState(false);
+  const plotHeight = expanded ? plotHeightExpanded : plotHeightCollapsed;
   const [hovered, setHovered] = useState<{
     x: number;
     y: number;
     value: number;
     time: Date;
   } | null>(null);
+  const hoverTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
     const el = containerRef.current;
@@ -66,9 +72,10 @@ function MetricsTimeline({
     setSelection(null);
   }, [resetKey]);
 
+  const leftPadding = expanded ? yAxisWidth : 0;
   const innerWidth = useMemo(
-    () => Math.max(0, width - chartPadding * 2),
-    [width]
+    () => Math.max(0, width - chartPadding * 2 - leftPadding),
+    [width, leftPadding]
   );
 
   const series = useMemo(() => {
@@ -112,7 +119,17 @@ function MetricsTimeline({
     return scaleLinear()
       .domain([minValue - padding, maxValue + padding])
       .range([plotHeight, 0]);
-  }, [series]);
+  }, [series, plotHeight]);
+
+  const yGridLines = useMemo(() => {
+    const [min, max] = yScale.domain();
+    const lines = [];
+    for (let i = 1; i < gridLineCount; i++) {
+      const value = min + ((max - min) * i) / gridLineCount;
+      lines.push({ y: yScale(value), label: `${value.toFixed(0)}%` });
+    }
+    return lines;
+  }, [yScale]);
 
   const formatTime = useMemo(() => timeFormat("%H:%M"), []);
   const formatFull = useMemo(() => timeFormat("%b %d, %Y %H:%M"), []);
@@ -147,6 +164,8 @@ function MetricsTimeline({
   };
 
   const startSelection = (clientX: number) => {
+    clearHoverTimer();
+    setHovered(null);
     const time = getTimeFromClientX(clientX);
     setSelection({ start: time, end: time, active: true });
   };
@@ -161,8 +180,16 @@ function MetricsTimeline({
     });
   };
 
+  const clearHoverTimer = () => {
+    if (hoverTimerRef.current) {
+      clearTimeout(hoverTimerRef.current);
+      hoverTimerRef.current = null;
+    }
+  };
+
   const updateHover = (clientX: number, clientY: number) => {
     if (!svgRef.current || series.length === 0) {
+      clearHoverTimer();
       setHovered(null);
       return;
     }
@@ -180,15 +207,19 @@ function MetricsTimeline({
           ? prev
           : next;
     if (!target) {
+      clearHoverTimer();
       setHovered(null);
       return;
     }
-    setHovered({
-      x: chartPadding + xScale(target.time),
-      y: Math.min(plotHeight, Math.max(0, clientY - rect.top)),
-      value: target.value,
-      time: target.time
-    });
+    clearHoverTimer();
+    hoverTimerRef.current = setTimeout(() => {
+      setHovered({
+        x: chartPadding + xScale(target.time),
+        y: Math.min(plotHeight, Math.max(0, clientY - rect.top)),
+        value: target.value,
+        time: target.time
+      });
+    }, 1000);
   };
 
   const finishSelection = () => {
@@ -225,7 +256,29 @@ function MetricsTimeline({
         aria-label={`${mode} timeline`}
         ref={svgRef}
       >
-        <g transform={`translate(${chartPadding}, 0)`}>
+        <g transform={`translate(${chartPadding + leftPadding}, 0)`}>
+          {yGridLines.map((gl, i) => (
+            <g key={i}>
+              <line
+                className="metrics-gridline"
+                x1={0}
+                x2={innerWidth}
+                y1={gl.y}
+                y2={gl.y}
+              />
+              {expanded ? (
+                <text
+                  className="metrics-y-label"
+                  x={-4}
+                  y={gl.y}
+                  textAnchor="end"
+                  dominantBaseline="middle"
+                >
+                  {gl.label}
+                </text>
+              ) : null}
+            </g>
+          ))}
           {path ? (
             <path className="metrics-line" d={path} fill="none" />
           ) : null}
@@ -299,6 +352,7 @@ function MetricsTimeline({
               finishSelection();
             }}
             onPointerLeave={() => {
+              clearHoverTimer();
               setHovered(null);
               if (selection?.active) {
                 finishSelection();
@@ -314,9 +368,23 @@ function MetricsTimeline({
           lines={[`${hovered.value.toFixed(1)}%`, formatFull(hovered.time)]}
         />
       ) : null}
+      {expanded ? (
+        <div className="metrics-legend">
+          <span className="metrics-legend-dot" />
+          {mode === "cpu" ? "CPU Usage" : "Memory Usage"}
+        </div>
+      ) : null}
       {loading && series.length === 0 ? (
         <div className="samples-loading">Loading metrics...</div>
       ) : null}
+      <button
+        className="metrics-expand-toggle"
+        type="button"
+        aria-label={expanded ? "Collapse" : "Expand"}
+        onClick={() => setExpanded((prev) => !prev)}
+      >
+        <i className={`bi bi-chevron-${expanded ? "up" : "down"}`} aria-hidden="true"></i>
+      </button>
     </div>
   );
 }
