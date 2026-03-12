@@ -1,6 +1,6 @@
 import { useState } from "react";
-import { Modal, NumberInput, Text } from "@mantine/core";
-import flameIcon from "../assets/flame.png";
+import { Button, Modal, NumberInput, Text } from "@mantine/core";
+import flameIcon from "../assets/vihren.png";
 
 interface SidebarProps {
   stacksNum: number;
@@ -10,6 +10,7 @@ interface SidebarProps {
 function Sidebar({ stacksNum, onStacksNumChange }: SidebarProps) {
   const [aboutOpen, setAboutOpen] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const [draftStacksNum, setDraftStacksNum] = useState(stacksNum);
 
   return (
     <aside className="sidebar-rail">
@@ -42,7 +43,7 @@ function Sidebar({ stacksNum, onStacksNumChange }: SidebarProps) {
           type="button"
           aria-label="Settings"
           title="Settings"
-          onClick={() => setSettingsOpen(true)}
+          onClick={() => { setDraftStacksNum(stacksNum); setSettingsOpen(true); }}
         >
           <i className="bi bi-gear" aria-hidden="true"></i>
         </button>
@@ -67,12 +68,19 @@ function Sidebar({ stacksNum, onStacksNumChange }: SidebarProps) {
         <NumberInput
           label="Max stacks"
           description="Number of top stack frames to fetch per query"
-          value={stacksNum}
-          onChange={(val) => onStacksNumChange(typeof val === "number" ? val : 10000)}
+          value={draftStacksNum}
+          onChange={(val) => setDraftStacksNum(typeof val === "number" ? val : 10000)}
           min={1000}
           max={100000}
           step={1000}
         />
+        <Button
+          mt="md"
+          fullWidth
+          onClick={() => { onStacksNumChange(draftStacksNum); setSettingsOpen(false); }}
+        >
+          Apply
+        </Button>
       </Modal>
 
       <Modal
@@ -114,6 +122,20 @@ function Sidebar({ stacksNum, onStacksNumChange }: SidebarProps) {
               rel="noopener noreferrer"
             >
               ClickHouse
+            </a>
+            .
+          </Text>
+
+          <Text size="xs" c="dimmed" mt="lg">
+            Copyright 2026 Tim Sleptsov. Apache License 2.0.
+            <br />
+            Includes code from{" "}
+            <a
+              href="https://github.com/intel/gprofiler-performance-studio"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              Intel gprofiler-performance-studio
             </a>
             .
           </Text>

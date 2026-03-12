@@ -578,8 +578,7 @@ function App() {
     }
     const serializer = new XMLSerializer();
     const svgString = serializer.serializeToString(clone);
-    const blob = new Blob([svgString], { type: "image/svg+xml;charset=utf-8" });
-    const url = URL.createObjectURL(blob);
+    const dataUrl = "data:image/svg+xml;base64," + btoa(unescape(encodeURIComponent(svgString)));
     const img = new Image();
     img.onload = () => {
       const canvas = document.createElement("canvas");
@@ -587,17 +586,16 @@ function App() {
       canvas.width = width * scale;
       canvas.height = height * scale;
       const ctx = canvas.getContext("2d");
-      if (!ctx) { URL.revokeObjectURL(url); return; }
+      if (!ctx) return;
       ctx.scale(scale, scale);
       ctx.fillStyle = "#ffffff";
       ctx.fillRect(0, 0, width, height);
       ctx.drawImage(img, 0, 0, width, height);
-      URL.revokeObjectURL(url);
       canvas.toBlob((pngBlob) => {
         if (pngBlob) downloadBlob(pngBlob, exportFilename("png"));
       }, "image/png");
     };
-    img.src = url;
+    img.src = dataUrl;
   }, [getSvgElement, downloadBlob, exportFilename]);
 
   const handleExportSvg = useCallback(() => {
