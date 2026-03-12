@@ -2,7 +2,7 @@
 <img src="frontend/assets/vihren.png" alt="Vihren" width="128">
 
 **Vihren** is a lightweight backend for [Intel gProfiler](https://github.com/intel/gprofiler),
-for easier deployment suitable for small setups.
+for easier deployment, suitable for small setups.
 
 > [!NOTE]  
 > **Vihren** is the highest peak in the Pirin Mountains of Bulgaria.
