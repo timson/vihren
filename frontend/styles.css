@@ -758,6 +758,35 @@ body {
   font-family: "Sora", "Segoe UI", sans-serif;
 }
 
+.flamegraph-context-menu {
+  position: absolute;
+  z-index: 1000;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  box-shadow: var(--shadow);
+  padding: 4px;
+  min-width: 160px;
+}
+
+.flamegraph-context-menu button {
+  display: block;
+  width: 100%;
+  padding: 6px 12px;
+  border: none;
+  background: none;
+  color: var(--text);
+  font-size: 13px;
+  font-family: inherit;
+  text-align: left;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.flamegraph-context-menu button:hover {
+  background: rgba(70, 87, 232, 0.1);
+}
+
 @media (max-width: 980px) {
   .shell {
     grid-template-columns: 1fr;
