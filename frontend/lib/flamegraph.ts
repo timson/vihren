@@ -37,6 +37,7 @@ export const allRuntimeKeys = legendItems.map((item) => item.key);
 let currentFlamegraph: ReturnType<typeof flamegraphFactory> | null = null;
 let currentSearchTerm = "";
 let currentData: FlamegraphResponse | null = null;
+let contextMenuVisible = false;
 let lastMousePosition: { x: number; y: number } | null = null;
 let hasMouseTracker = false;
 
@@ -230,10 +231,115 @@ export const renderFlamegraph = (data: FlamegraphResponse) => {
     });
     hasMouseTracker = true;
   }
+  setupContextMenu(container);
+};
+
+let contextMenuCleanup: (() => void) | null = null;
+
+const setupContextMenu = (container: HTMLElement) => {
+  if (contextMenuCleanup) {
+    contextMenuCleanup();
+  }
+
+  let menu: HTMLDivElement | null = null;
+  let longPressTimer: ReturnType<typeof setTimeout> | null = null;
+  let pendingFrameName: string | null = null;
+
+  const removeMenu = () => {
+    if (menu) {
+      menu.remove();
+      menu = null;
+    }
+    pendingFrameName = null;
+    contextMenuVisible = false;
+  };
+
+  const getFrameName = (target: EventTarget | null): string | null => {
+    let el = target as HTMLElement | null;
+    while (el && el !== container) {
+      const datum = (d3.select(el).datum() as any);
+      const name = datum?.data?.name ?? datum?.name;
+      if (name && name !== "All" && name !== "root") return String(name);
+      el = el.parentElement;
+    }
+    return null;
+  };
+
+  const showMenu = (x: number, y: number, frameName: string) => {
+    removeMenu();
+    contextMenuVisible = true;
+    const existingTooltip = container.querySelector(".flamegraph-tooltip") as HTMLElement | null;
+    if (existingTooltip) existingTooltip.style.display = "none";
+    menu = document.createElement("div");
+    menu.className = "flamegraph-context-menu";
+    const item = document.createElement("button");
+    item.textContent = "Copy frame name";
+    item.addEventListener("click", () => {
+      navigator.clipboard.writeText(frameName);
+      removeMenu();
+    });
+    menu.appendChild(item);
+    const rect = container.getBoundingClientRect();
+    menu.style.left = `${x - rect.left}px`;
+    menu.style.top = `${y - rect.top}px`;
+    container.appendChild(menu);
+  };
+
+  const onContextMenu = (e: MouseEvent) => {
+    const name = getFrameName(e.target);
+    if (!name) return;
+    e.preventDefault();
+    showMenu(e.clientX, e.clientY, name);
+  };
+
+  const onTouchStart = (e: TouchEvent) => {
+    const name = getFrameName(e.target);
+    if (!name) return;
+    pendingFrameName = name;
+    const touch = e.touches[0];
+    const x = touch.clientX;
+    const y = touch.clientY;
+    longPressTimer = setTimeout(() => {
+      if (pendingFrameName) {
+        e.preventDefault();
+        showMenu(x, y, pendingFrameName);
+      }
+    }, 500);
+  };
+
+  const cancelLongPress = () => {
+    if (longPressTimer) {
+      clearTimeout(longPressTimer);
+      longPressTimer = null;
+    }
+    pendingFrameName = null;
+  };
+
+  const onClickOutside = (e: MouseEvent) => {
+    if (menu && !menu.contains(e.target as Node)) {
+      removeMenu();
+    }
+  };
+
+  container.addEventListener("contextmenu", onContextMenu);
+  container.addEventListener("touchstart", onTouchStart, { passive: false });
+  container.addEventListener("touchend", cancelLongPress);
+  container.addEventListener("touchmove", cancelLongPress);
+  document.addEventListener("click", onClickOutside);
+
+  contextMenuCleanup = () => {
+    container.removeEventListener("contextmenu", onContextMenu);
+    container.removeEventListener("touchstart", onTouchStart);
+    container.removeEventListener("touchend", cancelLongPress);
+    container.removeEventListener("touchmove", cancelLongPress);
+    document.removeEventListener("click", onClickOutside);
+    removeMenu();
+  };
 };
 
 const createFlamegraphTooltip = (container: HTMLElement) => {
   let tooltip: HTMLDivElement | null = null;
+  let showTimer: ReturnType<typeof setTimeout> | null = null;
 
   const ensureTooltip = () => {
     if (tooltip) {
@@ -245,6 +351,13 @@ const createFlamegraphTooltip = (container: HTMLElement) => {
     container.appendChild(tooltip);
   };
 
+  const cancelShowTimer = () => {
+    if (showTimer) {
+      clearTimeout(showTimer);
+      showTimer = null;
+    }
+  };
+
   const tip = (() => {
     ensureTooltip();
   }) as (() => void) & {
@@ -254,6 +367,8 @@ const createFlamegraphTooltip = (container: HTMLElement) => {
   };
 
   tip.show = (d: any) => {
+    cancelShowTimer();
+    if (contextMenuVisible) return;
     ensureTooltip();
     const datum = d?.data ?? d;
     if (!datum || !tooltip) {
@@ -281,28 +396,32 @@ const createFlamegraphTooltip = (container: HTMLElement) => {
       totalSamples > 0 ? (selfValue / totalSamples) * 100 : 0;
     const runtimeInfo = getRuntimeInfo(datum);
     const name = String(datum.name ?? "");
-    tooltip.innerHTML = `
-      <div class="chart-tooltip-value">${name}</div>
-      <div class="chart-tooltip-time">Samples: ${value} (${formatPercent(
-        percentAll
-      )})</div>
-      <div class="chart-tooltip-time">Self: ${selfValue} (${formatPercent(
-        selfPercentAll
-      )})</div>
-      <div class="chart-tooltip-time">
-        <span class="runtime-dot" style="background:${runtimeInfo.color}"></span>
-        ${runtimeInfo.label}
-      </div>
-    `;
-    const rect = container.getBoundingClientRect();
-    const clientX = lastMousePosition?.x ?? rect.left + rect.width / 2;
-    const clientY = lastMousePosition?.y ?? rect.top + rect.height / 2;
-    tooltip.style.left = `${clientX - rect.left}px`;
-    tooltip.style.top = `${clientY - rect.top}px`;
-    tooltip.style.display = "block";
+    showTimer = setTimeout(() => {
+      if (!tooltip || contextMenuVisible) return;
+      tooltip.innerHTML = `
+        <div class="chart-tooltip-value">${name}</div>
+        <div class="chart-tooltip-time">Samples: ${value} (${formatPercent(
+          percentAll
+        )})</div>
+        <div class="chart-tooltip-time">Self: ${selfValue} (${formatPercent(
+          selfPercentAll
+        )})</div>
+        <div class="chart-tooltip-time">
+          <span class="runtime-dot" style="background:${runtimeInfo.color}"></span>
+          ${runtimeInfo.label}
+        </div>
+      `;
+      const rect = container.getBoundingClientRect();
+      const clientX = lastMousePosition?.x ?? rect.left + rect.width / 2;
+      const clientY = lastMousePosition?.y ?? rect.top + rect.height / 2;
+      tooltip.style.left = `${clientX - rect.left}px`;
+      tooltip.style.top = `${clientY - rect.top}px`;
+      tooltip.style.display = "block";
+    }, 1000);
   };
 
   tip.hide = () => {
+    cancelShowTimer();
     if (tooltip) {
       tooltip.style.display = "none";
     }
