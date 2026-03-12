@@ -586,6 +586,55 @@ body {
   fill: var(--accent);
 }
 
+.metrics-gridline {
+  stroke: rgba(14, 20, 36, 0.08);
+  stroke-width: 1px;
+  stroke-dasharray: 3 3;
+}
+
+.metrics-y-label {
+  fill: var(--muted);
+  font-size: 9px;
+}
+
+.metrics-legend {
+  position: absolute;
+  top: 4px;
+  right: 8px;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 10px;
+  color: var(--muted);
+}
+
+.metrics-legend-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--accent);
+}
+
+.metrics-expand-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  padding: 0;
+  margin: 0;
+  border: none;
+  background: none;
+  color: var(--muted);
+  font-size: 12px;
+  cursor: pointer;
+  opacity: 0.5;
+  line-height: 1;
+}
+
+.metrics-expand-toggle:hover {
+  opacity: 1;
+}
+
 .metrics-point-hit {
   fill: transparent;
   cursor: pointer;
